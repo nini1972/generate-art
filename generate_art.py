@@ -224,7 +224,7 @@ def generate_artwork(day, hour, width=800, height=600, output_path=None):
     
     # Save if output path provided
     if output_path:
-        os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+        os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
         final_image.save(output_path)
     
     return final_image
@@ -240,11 +240,7 @@ def main():
     # Step 3: Generate the art prompt
     prompt = generate_prompt(current_day, current_hour)
 
-    # Step 4: Simulate image generation API call
-    mock_image_id = random.randint(1000, 9999)
-    mock_image_url = f"https://example.com/generated_art_{mock_image_id}.png"
-
-    # Step 5: Generate actual artwork using graphics library
+    # Step 4: Generate actual artwork using graphics library
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -252,14 +248,13 @@ def main():
     
     generate_artwork(current_day, current_hour, output_path=output_path)
 
-    # Step 6: Print confirmation message
+    # Step 5: Print confirmation message
     print("✅ Artwork generated successfully!")
     print(f"Day: {current_day}")
     print(f"Hour: {current_hour}:00")
     print(f"Day Concept: {day_map[current_day]}")
     print(f"Hour Influence: rotation={rotation_angle(current_hour)}°, hue_shift={current_hour * 15}°")
-    print(f"Prompt used: {prompt}")
-    print(f"Mock Image URL: {mock_image_url}")
+    print(f"AI Art Prompt: {prompt}")
     print(f"Generated Image: {output_path}")
 
 

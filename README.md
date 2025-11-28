@@ -50,8 +50,7 @@ Day: Friday
 Hour: 14:00
 Day Concept: playful colorful patterns
 Hour Influence: rotation=210°, hue_shift=210°
-Prompt used: Generative digital artwork with playful colorful patterns and color palette with hue shift of 210 degrees, rotated 210 degrees, modern digital art style.
-Mock Image URL: https://example.com/generated_art_1234.png
+AI Art Prompt: Generative digital artwork with playful colorful patterns and color palette with hue shift of 210 degrees, rotated 210 degrees, modern digital art style.
 Generated Image: output/artwork_20231128_140000.png
 ```
 

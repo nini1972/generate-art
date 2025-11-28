@@ -5,9 +5,10 @@ Tests for the art generator tool.
 import datetime
 import os
 import sys
+from pathlib import Path
 
 # Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from generate_art import (
     day_map,

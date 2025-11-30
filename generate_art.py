@@ -38,34 +38,43 @@ day_shapes = {
 }
 
 
-def hour_color(h):
-    """Map hour to color description."""
-    return f"color palette with hue shift of {h * 15} degrees"
+def time_color(t):
+    """Map time to color description."""
+    total_minutes = t.hour * 60 + t.minute
+    return f"color palette with hue shift of {total_minutes % 360} degrees"
 
 
-def rotation_angle(h):
-    """Map hour to rotation angle."""
-    return h * 15
+def time_rotation(t):
+    """Map time to rotation angle."""
+    total_seconds = t.hour * 3600 + t.minute * 60 + t.second
+    return (total_seconds // 10) % 360
 
 
-def hour_influence(h):
-    """Calculate numeric influences based on hour."""
-    normalized = h / 23
+def time_influence(t):
+    """Calculate numeric influences based on exact time."""
+    # Calculate a normalized time value (0.0 to 1.0) based on the full day
+    total_seconds = t.hour * 3600 + t.minute * 60 + t.second + t.microsecond / 1000000
+    seconds_in_day = 24 * 3600
+    normalized = total_seconds / seconds_in_day
+    
+    # Use microsecond for extra randomness in complexity
+    micro_factor = t.microsecond / 1000000
+    
     return {
-        "angle": h * 15,
+        "angle": (total_seconds // 10) % 360,
         "size": 0.5 + (normalized * 0.5),
         "saturation": 0.3 + (math.sin(normalized * math.pi) * 0.7),
-        "brightness": 0.3 + ((h if h <= 12 else 24 - h) / 12) * 0.7,
-        "complexity": int(3 + normalized * 7),
+        "brightness": 0.3 + ((t.hour if t.hour <= 12 else 24 - t.hour) / 12) * 0.7,
+        "complexity": int(3 + (normalized + micro_factor) * 10),
         "opacity": int(150 + normalized * 105)
     }
 
 
-def generate_prompt(day, hour):
-    """Generate an AI art prompt based on day and hour."""
+def generate_prompt(day, t):
+    """Generate an AI art prompt based on day and time."""
     prompt = (
-        f"Generative digital artwork with {day_map[day]} and {hour_color(hour)}, "
-        f"rotated {rotation_angle(hour)} degrees, modern digital art style."
+        f"Generative digital artwork with {day_map[day]} and {time_color(t)}, "
+        f"rotated {time_rotation(t)} degrees, modern digital art style."
     )
     return prompt
 
@@ -174,10 +183,14 @@ def draw_waves(draw, width, height, colors, influence):
             draw.line(points, fill=color, width=5)
 
 
-def generate_artwork(day, hour, width=800, height=600, output_path=None):
+def generate_artwork(day, time_obj, width=800, height=600, output_path=None):
     """Generate artwork directly using the graphics library."""
+    
+    # Seed random with exact time for uniqueness
+    random.seed(time_obj.timestamp())
+    
     colors = day_colors[day]
-    influence = hour_influence(hour)
+    influence = time_influence(time_obj)
     shape_type = day_shapes[day]
     
     # Create image with gradient background
@@ -232,13 +245,12 @@ def generate_artwork(day, hour, width=800, height=600, output_path=None):
 
 def main():
     """Main function to run the art generator."""
-    # Step 2: Get current day and hour
+    # Step 2: Get current day and time
     now = datetime.datetime.now()
     current_day = now.strftime("%A")
-    current_hour = now.hour
-
+    
     # Step 3: Generate the art prompt
-    prompt = generate_prompt(current_day, current_hour)
+    prompt = generate_prompt(current_day, now)
 
     # Step 4: Generate actual artwork using graphics library
     output_dir = "output"
@@ -246,14 +258,14 @@ def main():
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     output_path = os.path.join(output_dir, f"artwork_{timestamp}.png")
     
-    generate_artwork(current_day, current_hour, output_path=output_path)
+    generate_artwork(current_day, now, output_path=output_path)
 
     # Step 5: Print confirmation message
     print("✅ Artwork generated successfully!")
     print(f"Day: {current_day}")
-    print(f"Hour: {current_hour}:00")
+    print(f"Time: {now.strftime('%H:%M:%S')}")
     print(f"Day Concept: {day_map[current_day]}")
-    print(f"Hour Influence: rotation={rotation_angle(current_hour)}°, hue_shift={current_hour * 15}°")
+    print(f"Time Influence: rotation={time_rotation(now)}°, hue_shift={time_color(now)}")
     print(f"AI Art Prompt: {prompt}")
     print(f"Generated Image: {output_path}")
 

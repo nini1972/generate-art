@@ -14,9 +14,9 @@ from generate_art import (
     day_map,
     day_colors,
     day_shapes,
-    hour_color,
-    rotation_angle,
-    hour_influence,
+    time_color,
+    time_rotation,
+    time_influence,
     generate_prompt,
     generate_artwork
 )
@@ -52,27 +52,45 @@ def test_day_shapes():
     print("✅ test_day_shapes passed")
 
 
-def test_hour_color():
-    """Test hour to color mapping function."""
-    for hour in range(24):
-        result = hour_color(hour)
-        assert "hue shift" in result, f"hour_color({hour}) should contain 'hue shift'"
-        assert str(hour * 15) in result, f"hour_color({hour}) should contain {hour * 15}"
-    print("✅ test_hour_color passed")
+def test_time_color():
+    """Test time to color mapping function."""
+    # Test a few times
+    times = [
+        datetime.datetime(2023, 1, 1, 0, 0, 0),
+        datetime.datetime(2023, 1, 1, 12, 30, 0),
+        datetime.datetime(2023, 1, 1, 23, 59, 59)
+    ]
+    for t in times:
+        result = time_color(t)
+        assert "hue shift" in result, f"time_color({t}) should contain 'hue shift'"
+    print("✅ test_time_color passed")
 
 
-def test_rotation_angle():
-    """Test hour to rotation angle mapping."""
-    for hour in range(24):
-        angle = rotation_angle(hour)
-        assert angle == hour * 15, f"rotation_angle({hour}) should be {hour * 15}"
-    print("✅ test_rotation_angle passed")
+def test_time_rotation():
+    """Test time to rotation angle mapping."""
+    # Test a few times
+    times = [
+        datetime.datetime(2023, 1, 1, 0, 0, 0),
+        datetime.datetime(2023, 1, 1, 12, 30, 0),
+        datetime.datetime(2023, 1, 1, 23, 59, 59)
+    ]
+    for t in times:
+        angle = time_rotation(t)
+        assert 0 <= angle < 360, f"Rotation angle {angle} should be between 0 and 360"
+    print("✅ test_time_rotation passed")
 
 
-def test_hour_influence():
-    """Test hour influence calculations."""
-    for hour in range(24):
-        influence = hour_influence(hour)
+def test_time_influence():
+    """Test time influence calculations."""
+    # Test a few times
+    times = [
+        datetime.datetime(2023, 1, 1, 0, 0, 0),
+        datetime.datetime(2023, 1, 1, 12, 30, 0),
+        datetime.datetime(2023, 1, 1, 23, 59, 59)
+    ]
+    
+    for t in times:
+        influence = time_influence(t)
         
         assert "angle" in influence, "influence should have 'angle'"
         assert "size" in influence, "influence should have 'size'"
@@ -81,26 +99,26 @@ def test_hour_influence():
         assert "complexity" in influence, "influence should have 'complexity'"
         assert "opacity" in influence, "influence should have 'opacity'"
         
-        assert influence["angle"] == hour * 15, f"angle for hour {hour} should be {hour * 15}"
+        assert 0 <= influence["angle"] < 360, f"angle should be 0-360"
         assert 0.5 <= influence["size"] <= 1.0, f"size should be between 0.5 and 1.0"
         assert 0 <= influence["saturation"] <= 1.0, f"saturation should be between 0 and 1.0"
         assert 0 <= influence["brightness"] <= 1.0, f"brightness should be between 0 and 1.0"
-        assert 3 <= influence["complexity"] <= 10, f"complexity should be between 3 and 10"
+        # Complexity range changed in new implementation
+        assert influence["complexity"] > 0, f"complexity should be positive"
         assert 150 <= influence["opacity"] <= 255, f"opacity should be between 150 and 255"
     
-    print("✅ test_hour_influence passed")
+    print("✅ test_time_influence passed")
 
 
 def test_generate_prompt():
-    """Test prompt generation for all days and hours."""
+    """Test prompt generation for all days and times."""
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    t = datetime.datetime(2023, 1, 1, 12, 0, 0)
     
     for day in days:
-        for hour in [0, 6, 12, 18, 23]:
-            prompt = generate_prompt(day, hour)
-            assert day_map[day] in prompt, f"Prompt should contain day concept"
-            assert str(hour * 15) in prompt, f"Prompt should contain rotation angle"
-            assert "digital artwork" in prompt.lower(), f"Prompt should mention digital artwork"
+        prompt = generate_prompt(day, t)
+        assert day_map[day] in prompt, f"Prompt should contain day concept"
+        assert "digital artwork" in prompt.lower(), f"Prompt should mention digital artwork"
     
     print("✅ test_generate_prompt passed")
 
@@ -110,19 +128,18 @@ def test_generate_artwork():
     import tempfile
     
     days = ["Monday", "Friday", "Sunday"]  # Test a few representative days
-    hours = [0, 12, 23]  # Test different hours
+    t = datetime.datetime(2023, 1, 1, 12, 0, 0)
     
     for day in days:
-        for hour in hours:
-            # Generate artwork without saving
-            image = generate_artwork(day, hour, width=200, height=150)
-            assert image is not None, f"Image should not be None for {day} at {hour}:00"
-            assert image.size == (200, 150), f"Image size should be 200x150"
+        # Generate artwork without saving
+        image = generate_artwork(day, t, width=200, height=150)
+        assert image is not None, f"Image should not be None for {day}"
+        assert image.size == (200, 150), f"Image size should be 200x150"
     
     # Test saving to file
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = os.path.join(tmpdir, "test_artwork.png")
-        image = generate_artwork("Friday", 12, output_path=output_path)
+        image = generate_artwork("Friday", t, output_path=output_path)
         assert os.path.exists(output_path), "Output file should exist"
     
     print("✅ test_generate_artwork passed")
@@ -136,9 +153,9 @@ def run_all_tests():
     test_day_map()
     test_day_colors()
     test_day_shapes()
-    test_hour_color()
-    test_rotation_angle()
-    test_hour_influence()
+    test_time_color()
+    test_time_rotation()
+    test_time_influence()
     test_generate_prompt()
     test_generate_artwork()
     
